@@ -46,7 +46,29 @@ function emitPauseEvent() {
 	const timestamp = Date.now()
 	socket.emit('pause', timestamp)
 }
+function onCaptionsLoad() {
+	const video = document.getElementById('video')
+	const textTracks = video.textTracks
+
+	// Find the track with the 'subtitles' kind (captions)
+	let captionsTrack
+	for (let i = 0; i < textTracks.length; i++) {
+		if (textTracks[i].kind === 'subtitles') {
+			captionsTrack = textTracks[i]
+			break
+		}
+	}
+
+	if (!captionsTrack) {
+		console.error('Captions track not found.')
+		return
+	}
+
+	// Display the captions by enabling the track
+	captionsTrack.mode = 'showing'
+}
 
 // Handle user interaction (play/pause) and emit corresponding events
 video.addEventListener('play', emitPlayEvent)
 video.addEventListener('pause', emitPauseEvent)
+video.addEventListener('loadedmetadata', onCaptionsLoad)

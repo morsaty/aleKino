@@ -15,6 +15,13 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('a user connected');
 
+    // Handle sharing of video URL and captions data
+    socket.on('shareMovieData', (data) => {
+        console.log('Data shared by:', socket.id);
+        // Broadcast the shared data to all connected clients
+        io.emit('sharedMovieData', data);
+    });
+
     socket.on('play', (timestamp) => {
         console.log('Play event received from:', socket.id);
         // Broadcast the 'play' event along with the received timestamp to all connected clients

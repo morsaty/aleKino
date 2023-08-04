@@ -1,8 +1,53 @@
 var socket = io()
+
 const video = document.getElementById('video')
 let isPlaying = false
 let lastTimestamp = 0
-const latencyThreshold = 500 // Adjust this value based on your network conditions
+const latencyThreshold = 350 // Adjust this value based on your network conditions
+
+// Function to handle the submission of the movie URL and user-uploaded captions
+function submitMovieUrl() {
+	const videoUrlInput = document.getElementById('videoUrlInput')
+	const videoUrl = videoUrlInput.value
+
+	const captionsFileInput = document.getElementById('captionsFileInput')
+	const captionsFile = captionsFileInput.files[0]
+	const reader = new FileReader()
+
+	// Read the user-uploaded captions file as text
+	reader.readAsText(captionsFile)
+	reader.onload = function () {
+		const captionsText = reader.result
+		const data = {
+			videoUrl: videoUrl,
+			captionsText: captionsText,
+		}
+		socket.emit('shareMovieData', data) // Send the video URL and captions text to the server
+	}
+}
+
+// When the server broadcasts the shared video data, update the video and captions sources dynamically
+socket.on('sharedMovieData', data => {
+	const video = document.getElementById('video')
+	video.src = data.videoUrl
+
+	// Remove any existing text tracks (captions) from the video
+	while (video.textTracks.length > 0) {
+		video.textTracks[0].mode = 'disabled'
+		video.textTracks[0].removeCue(video.textTracks[0].cues[0])
+	}
+
+	// Create a new text track for captions and add cues from the shared captions text
+	const captionsTrack = video.addTextTrack('subtitles', 'English', 'en')
+	captionsTrack.mode = 'showing'
+
+	const parser = new WebVTT.Parser(window, WebVTT.StringDecoder())
+	parser.oncue = function (cue) {
+		captionsTrack.addCue(cue)
+	}
+	parser.parse(data.captionsText)
+	parser.flush()
+})
 
 socket.on('play', timestamp => {
 	if (!isPlaying) {
@@ -46,6 +91,12 @@ function emitPauseEvent() {
 	const timestamp = Date.now()
 	socket.emit('pause', timestamp)
 }
+
+// Handle user interaction (play/pause) and emit corresponding events
+video.addEventListener('play', emitPlayEvent)
+video.addEventListener('pause', emitPauseEvent)
+
+// Additional code to handle the captions load
 function onCaptionsLoad() {
 	const video = document.getElementById('video')
 	const textTracks = video.textTracks
@@ -68,7 +119,5 @@ function onCaptionsLoad() {
 	captionsTrack.mode = 'showing'
 }
 
-// Handle user interaction (play/pause) and emit corresponding events
-video.addEventListener('play', emitPlayEvent)
-video.addEventListener('pause', emitPauseEvent)
+// Call the captions load function on loadedmetadata event
 video.addEventListener('loadedmetadata', onCaptionsLoad)

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>Synced Video</title>
+    <title>aleKino</title>
     <style>
         body {
             margin: 0;
@@ -16,16 +15,20 @@
         }
     </style>
 </head>
-
 <body>
+    <!-- Add an input field for users to enter the video URL -->
+    <input type="text" id="videoUrlInput" placeholder="MP4 movie URL here">
+    <!-- Add a file input for users to upload their own captions -->
+    <input type="file" id="captionsFileInput">
+    <button onclick="submitMovieUrl()">Submit</button>
+
+    <!-- The video element to display the shared movie -->
     <video id="video" controls muted>
-        <source
-            src="https://usa7-hs101-1.shegu.net/vip/p1/tv_mp4_h264/1/5/165/1/tv.165.S1E1.1080p.H264.20200704195133.mp4?KEY1=kY1sxGAHdSguP27AlWzdEA&KEY2=1691119328"
-            type="video/mp4">
-        <track label="English" kind="subtitles" srclang="en" src="/captions.vtt" default>
+        <!-- The video source will be set dynamically with the shared video URL -->
+        <!-- The track element will be set dynamically with the user-uploaded captions -->
     </video>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="/index.js"></script>
 </body>
-
 </html>
